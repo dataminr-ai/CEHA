@@ -1,0 +1,40 @@
+##############################################################################
+# Instructions for Configuring Data and Model Pipelines
+# This configuration file is used to set up the data and model pipelines for processing and classifying event data. 
+### 1. Shared Configuration across both data_pipeline and model_pipeline(`shared_config`)
+### 2. Data Pipeline Configuration (`data_pipeline`)
+### 3. Model Pipeline Configuration (`model_pipeline`)
+
+##############################################################################
+shared_config: 
+  data_info:
+    data_folder: "" # Required. Output folder for data to be pulled
+    # start_date: "2025-01-01" # Optional. Default as the Saturday before latest Friday
+    # end_date: "2025-01-03" # Optional. Default as last Friday
+    data_sources:   # Optional. Default as ["ACLED", "GDELT"]
+      - ACLED
+      - GDELT
+  secret_info: 
+    databricks_secret_scope: "conflict_event_secret" # Databricks secret scope to store secrets
+
+data_pipeline:
+  store_intermediate_data: True # Optional. Default as False
+
+model_pipeline:
+  event_relevance_classification:
+    llm_name: "mistral" # Required. Name of the LLM to use ("mistral", "gpt4")
+    few_shot_num: 6 # Optional. Number of few-shot examples to include in the prompts. Default as 0
+    train_example_path: "{repo_location}/data/CEHA_dataset.csv" # Required if few_shot_num > 0
+    max_tokens: 512 # Optional.
+    temperature: 0 # Optional.
+    mistralai_rps: 0 # Optional. It will sleep for 1/mistralai_rps second before each Mistral call. Default as 0, which means there is no sleeping between LLM calls. 
+
+  event_type_classification:
+    llm_name: "gpt4" # Required. Name of the LLM to use ("mistral", "gpt4")
+    few_shot_num: 0 # Optional. Number of few-shot examples to include in the prompts. Default as 0
+    train_example_path: "{repo_location}/data/CEHA_dataset.csv" # Required if few_shot_num > 0
+    max_tokens: 512 # Optional.
+    temperature: 0 # Optional.
+    mistralai_rps: 0 # Optional. It will sleep for 1/mistralai_rps second before each Mistral call. Default as 0, which means there is no sleeping between LLM calls. 
+  
+  output_folder: "" # Required.

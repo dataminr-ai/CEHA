@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    Conflict_Event_Identification_and_Classification:
+      name: Conflict Event Identification and Classification
+      schedule:
+        quartz_cron_expression: 1 0 8 ? * Mon
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: data_pipeline
+          spark_python_task:
+            python_file: {git_repo_location_in_databricks}/db_data_pipeline.py
+            parameters:
+              - --config_path
+              - {git_repo_location_in_databricks}/config/model_config.yaml
+          existing_cluster_id: 0124-061905-tf3rgkn6
+          libraries:
+            - pypi:
+                package: gdelt==0.1.14
+            - pypi:
+                package: newspaper3k==0.2.8
+        - task_key: model_pipeline
+          depends_on:
+            - task_key: data_pipeline
+          spark_python_task:
+            python_file: {git_repo_location_in_databricks}/db_model_pipeline.py
+            parameters:
+              - --config_path
+              - {git_repo_location_in_databricks}/config/model_config.yaml
+          existing_cluster_id: 0124-061905-tf3rgkn6
+          libraries:
+            - pypi:
+                package: openai==1.35.3
+            - pypi:
+                package: mistralai==1.4.0
+            - pypi:
+                package: httpx==0.27.2
+      queue:
+        enabled: true
