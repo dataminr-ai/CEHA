@@ -16,7 +16,10 @@ from ..utils.prompts import (
     system_prompt,
 )
 from ..utils.utils import extract_between_tags, load_data
+from ..db_utils import configure_default_logger
 
+# Configure logging
+logger = configure_default_logger()
 
 def predict_event_relevance(args, df_train, df_test):
     """
@@ -112,9 +115,13 @@ def predict_event_relevance(args, df_train, df_test):
         i["llm_answer"] = llm_caller(input_prompt, sampling_params)[0].strip()
 
         assert i["llm_answer"] is not None
-        i["llm_answer_parsed_relevance"] = extract_between_tags(
+        try:
+            i["llm_answer_parsed_relevance"] = extract_between_tags(
             "answer", i["llm_answer"]
         )[0]
+        except:
+            i["llm_answer_parsed_relevance"] = ""
+            logger.info(f"LLM answer not in expected pattern for {i['ACLED/GDELT']}, {i['index']}, {i['Event Description']}, defaulting to no")
         
         if evaluation_flag:
             gold_label = "Yes" if i["Is the event relevant?_DM"] == "Yes" else "No"

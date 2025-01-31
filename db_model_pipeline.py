@@ -130,11 +130,18 @@ if __name__ == "__main__":
     final_test_data = pd.concat([acled_data, gdelt_data], ignore_index=True)
 
     # event relevance classification
+    logger.info("Running Event Relevance Classification")
     event_relevance_prediction = run_event_relevance_classification(final_test_data, secret_dict, event_relevance_llm, max_tokens=event_relevance_max_tokens, temperature=event_relevance_temperature, few_shot_num=event_relevance_few_shot_num, train_example_path=event_relevance_train_example_path, mistralai_rps=event_relevance_mistralai_rps)
     final_test_data["event_relevance_prediction"] = event_relevance_prediction
+    
+    # save results
+    os.makedirs(output_folder, exist_ok=True)
+    final_test_data.to_csv(os.path.join(output_folder, f"{'_'.join(data_sources).lower()}_{start_date}_{end_date}_with_predictions.csv"), index=False)
+
 
     # event type classification on relevant event
-    relevant_events = final_test_data[final_test_data["event_relevance_prediction"] == "relevant"]
+    logger.info("Running Event Type Classification")
+    relevant_events = final_test_data[final_test_data["event_relevance_prediction"] == "Yes"]
     event_type_prediction = run_event_type_classification(relevant_events, secret_dict, event_type_llm, max_tokens=event_type_max_tokens, temperature=event_type_temperature, few_shot_num=event_type_few_shot_num, train_example_path=event_type_train_example_path, mistralai_rps=event_type_mistralai_rps)
     final_test_data["event_type_prediction"] = np.nan
     final_test_data.loc[relevant_events.index, "event_type_prediction"] = event_type_prediction
