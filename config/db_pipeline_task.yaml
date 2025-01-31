@@ -3,7 +3,7 @@ resources:
     Conflict_Event_Identification_and_Classification:
       name: Conflict Event Identification and Classification
       schedule:
-        quartz_cron_expression: 1 0 8 ? * Mon
+        quartz_cron_expression: 1 0 8 ? * Tue
         timezone_id: America/New_York
         pause_status: UNPAUSED
       tasks:
